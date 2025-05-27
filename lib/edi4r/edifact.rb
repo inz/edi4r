@@ -18,7 +18,7 @@
 #
 # This is the UN/EDIFACT module of edi4r (hence '::E')
 #
-# It implements EDIFACT versions of classes Interchange, MsgGroup, Message, 
+# It implements EDIFACT versions of classes Interchange, MsgGroup, Message,
 # Segment, CDE, and DE in sub-module 'E' of module 'EDI'.
 
 module EDI::E
@@ -34,7 +34,7 @@ module EDI::E
   #########################################################################
   #
   # Utility: Separator method for UN/EDIFACT segments/CDEs
-  # 
+  #
   # The given string typically comprises an EDIFACT segment or a CDE.
   # We want to split it into its elements and return those in an array.
   # The tricky part is the proper handling of character escaping!
@@ -96,7 +96,7 @@ module EDI::E
   def count_escapes( str, e ) # :nodoc:
     n = 0
     (str.length-1).downto(0) do |i|
-      if str[i]==e 
+      if str[i]==e
         n += 1
       else
         return n
@@ -113,7 +113,7 @@ module EDI::E
   # Here we extend class Time by some methods that help us maximize
   # its use in the UN/EDIFACT context.
   #
-  # Basic idea: 
+  # Basic idea:
   # * Use the EDIFACT qualifiers of DE 2379 in DTM directly
   #   to parse dates and to create them upon output.
   # * Use augmented Time objects as values of DE 2380 instead of strings
@@ -255,7 +255,7 @@ module EDI::E
     # * Requires that "version" and "charset" of parent/root (Interchange)
     #   be already defined.
     # * Sets the UN/EDIFACT defaults if source string 'UNA......' not given
-    #   
+    #
     def initialize( root, source=nil )
       super( root, root, 'UNA')
 
@@ -273,12 +273,12 @@ module EDI::E
         else
           @chars = ":+.? '"
         end
-        
+
       else
         raise "This is not a valid UNA source string: #{source}"
       end
 
-      @ce_sep, @de_sep, @decimal_sign, 
+      @ce_sep, @de_sep, @decimal_sign,
       @esc_char, @rep_sep, @seg_term = @chars.split('').map{|c| c[0]}
       set_patterns
     end
@@ -308,9 +308,9 @@ module EDI::E
       @pattern_esc = Regexp.new( [ '([', special_chars, '])' ].flatten.join)
       esc_str = @esc_char.chr
       esc_str << '\\' if esc_str == '\\' # Must escape '\' in a regex
-      @pattern_unesc = Regexp.new( [ 
+      @pattern_unesc = Regexp.new( [
                                      '([^', esc_str, ']?)', '[', esc_str,
-                                     ']([', special_chars,'])' 
+                                     ']([', special_chars,'])'
                                    ].flatten.join )
       root.show_una = true
     end
@@ -332,7 +332,7 @@ module EDI::E
       :i_edi => false, :charset => 'UNOB', :version => 3,
       :show_una => true, :una_string => nil,
       :sender => nil, :recipient => nil,
-      :interchange_control_reference => '1', :application_reference => nil, 
+      :interchange_control_reference => '1', :application_reference => nil,
       :interchange_agreement_id => nil,
       :acknowledgment_request => nil, :test_indicator => nil,
       :output_mode => :verbatim
@@ -413,10 +413,10 @@ module EDI::E
         t = Time.now
         @header.cS300.d0338 = t.strftime(par[:version]==4 ? '%Y%m%d':'%y%m%d')
         @header.cS300.d0314 = t.strftime("%H%M")
-        
+
         @trailer.d0036 = 0
         ch, ct = @header.cS302, @trailer.cS302
-        ct.d0300, ct.d0303, ct.d0051, ct.d0304 = ch.d0300, ch.d0303, ch.d0051, ch.d0304 
+        ct.d0300, ct.d0303, ct.d0051, ct.d0304 = ch.d0300, ch.d0303, ch.d0051, ch.d0304
 
       else # Batch EDI
 
@@ -436,7 +436,7 @@ module EDI::E
         t = Time.now
         @header.cS004.d0017 = t.strftime(par[:version]==4 ? '%Y%m%d':'%y%m%d')
         @header.cS004.d0019 = t.strftime("%H%M")
-        
+
         @trailer.d0036 = 0
       end
     end
@@ -457,7 +457,7 @@ module EDI::E
     #
     # Returns an empty Interchange object with a properly header filled.
     #
-    # Intended use: 
+    # Intended use:
     #   Efficient routing by reading just UNB data: sender/recipient/ref/test
     #
     def Interchange.peek(hnd=$stdin, params={}) # Handle to input stream
@@ -493,10 +493,10 @@ module EDI::E
     # Valid values:
     #
     # :linebreak :: One-segment-per-line representation
-    # :indented ::  Like :linebreak but with additional indentation 
+    # :indented ::  Like :linebreak but with additional indentation
     #               (2 blanks per hierarchy level).
     # :verbatim ::  No linebreak (default), ISO compliant
-    # 
+    #
     def output_mode=( value )
       super( value )
       @e_linebreak = @e_indent = ''
@@ -576,12 +576,12 @@ module EDI::E
     #
     # Type conversion and escaping are provided.
     # The UNA object is shown when +show_una+ is set to +true+ .
-    # See +output_mode+ for modifiers. 
+    # See +output_mode+ for modifiers.
 
     def to_s
-      s = show_una ? una.to_s + @e_linebreak : ''
-      postfix = '' << una.seg_term << @e_linebreak
-      s << super( postfix )
+      s = show_una ? [una.to_s, @e_linebreak] : []
+      postfix = [una.seg_term, @e_linebreak].join
+      s.push(super( postfix )).join
     end
 
 
@@ -636,8 +636,8 @@ module EDI::E
     #
     def init_ndb(d0002, d0076 = nil)
       @basedata = EDI::Dir::Directory.create(root.syntax,
-                                             :d0002   => @version, 
-                                             :d0076   => d0076, 
+                                             :d0002   => @version,
+                                             :d0076   => d0076,
                                              :is_iedi => is_iedi?)
     end
 
@@ -691,11 +691,11 @@ module EDI::E
     attr_reader :messages_created
 
     @@msggroup_defaults = {
-      :msg_type => 'ORDERS', :version => 'D', :release => '96A', 
+      :msg_type => 'ORDERS', :version => 'D', :release => '96A',
       :resp_agency => 'UN', :assigned_code => nil # e.g. 'EAN008'
     }
     @@msggroup_default_keys = @@msggroup_defaults.keys
-    
+
     # Creates an empty UN/EDIFACT message group
     # Don't use directly - use +new_msggroup+ of class Interchange instead!
     #
@@ -707,7 +707,7 @@ module EDI::E
     # will be accounted for automatically.
     #
     # == Second parameter
-    # 
+    #
     # List of supported hash keys:
     #
     # === UNG presets for your convenience, may be changed later
@@ -726,7 +726,7 @@ module EDI::E
     #
     # == Notes
     #
-    # * The functional group reference number in UNG and UNE (0048) is set 
+    # * The functional group reference number in UNG and UNE (0048) is set
     #   automatically to a number that is unique for this message group and
     #   the running process (auto-increment).
     # * The counter in UNG (0060) is set automatically to the number
@@ -738,7 +738,7 @@ module EDI::E
     def initialize( p, user_par={} )
       super( p, user_par )
       @messages_created = 0
- 
+
       if user_par.is_a? Hash
         preset_group( user_par )
         @header = new_segment('UNG')
@@ -760,7 +760,7 @@ module EDI::E
         t = Time.now
         @header.cS004.d0017 = t.strftime(p.version==4 ? '%Y%m%d':'%y%m%d')
         @header.cS004.d0019 = t.strftime("%H%M")
-        
+
       elsif user_par.is_a? Segment
 
         @header = user_par
@@ -809,7 +809,7 @@ module EDI::E
     def MsgGroup.parse (p, segment_list) # List of segments
       grp = p.new_msggroup(:msg_type => 'DUMMY')
 
-      # We now expect a sequence of segments that comprises one group, 
+      # We now expect a sequence of segments that comprises one group,
       # starting with UNG and ending with UNE, and with messages in between.
       # We process the UNG/UNE envelope separately, then work on the content.
 
@@ -818,7 +818,7 @@ module EDI::E
 
       init_seg = Regexp.new('^UNH')
       exit_seg = Regexp.new('^UNT')
-      
+
       while segbuf = segment_list.shift
         case segbuf
 
@@ -827,11 +827,11 @@ module EDI::E
           sub_list.push segbuf
 
         when exit_seg
-          sub_list.push segbuf	
+          sub_list.push segbuf
           grp.add grp.parse_message(sub_list)
 
         else
-          sub_list.push segbuf	
+          sub_list.push segbuf
         end
       end
 
@@ -839,7 +839,7 @@ module EDI::E
       grp.trailer = trailer
       grp
     end
-    
+
 
     def new_message(params={})
       @messages_created += 1
@@ -886,7 +886,7 @@ module EDI::E
         warn "UNE: DE 0048 (#{a}) does not match reference in UNG (#{b})"
         err_count += 1
       end
-      
+
       # FIXME: Check if messages are uniquely numbered
 
       super
@@ -905,14 +905,14 @@ module EDI::E
     #    private_class_method :new
 
     @@message_defaults = {
-      :msg_type => 'ORDERS', :version => 'D', :release => '96A', 
+      :msg_type => 'ORDERS', :version => 'D', :release => '96A',
       :resp_agency => 'UN', :assigned_code => nil # e.g. 'EAN008'
     }
     @@message_default_keys = @@message_defaults.keys
-    
+
     # Creates an empty UN/EDIFACT message.
     #
-    # Don't use directly - call method +new_message+ of class Interchange 
+    # Don't use directly - call method +new_message+ of class Interchange
     # or MsgGroup instead!
     #
     # == First parameter
@@ -924,7 +924,7 @@ module EDI::E
     # will be accounted for automatically.
     #
     # == Second parameter, case "Hash"
-    # 
+    #
     # List of supported hash keys:
     #
     # === Essentials, should not be changed later
@@ -947,7 +947,7 @@ module EDI::E
     # * The counter in UNH (0062) is set automatically to a
     #   number that is unique for the running process.
     # * The trailer segment (usually UNT) is generated automatically.
-    # * Whenever possible, <b>avoid write access to the 
+    # * Whenever possible, <b>avoid write access to the
     #   message header or trailer segments</b>!
 
     def initialize( p, user_par={} )
@@ -959,12 +959,12 @@ module EDI::E
       if user_par.is_a? Hash
         preset_msg( user_par )
         par = {
-          :d0065 => @name, :d0052=> @version, :d0054=> @release, 
+          :d0065 => @name, :d0052=> @version, :d0054=> @release,
           :d0051 => @resp_agency, :d0057 => @subset, :is_iedi => root.is_iedi?
         }
         par[:d0002] = self.root.header.cS001.d0002 if %w/CONTRL AUTACK KEYMAN/.include? @name # TODO: Experimental - revise!
         @maindata = EDI::Dir::Directory.create(root.syntax, par )
- 
+
         if root.is_iedi?
           @header = new_segment('UIH')
           @trailer = new_segment('UIT')
@@ -997,7 +997,7 @@ module EDI::E
         @resp_agency = s009.d0051
         @subset = s009.d0057
         par = {
-          :d0065 => @name, :d0052=> @version, :d0054=> @release, 
+          :d0065 => @name, :d0052=> @version, :d0054=> @release,
           :d0051 => @resp_agency, :d0057 => @subset, :is_iedi => root.is_iedi?
         }
         @maindata = EDI::Dir::Directory.create(root.syntax, par )
@@ -1122,8 +1122,8 @@ module EDI::E
       # thereby adding location information to each segment
 
       par = {
-        :d0065 => @name, :d0052=> @version, :d0054=> @release, 
-        :d0051 => @resp_agency, :d0057 => @subset, 
+        :d0065 => @name, :d0052=> @version, :d0054=> @release,
+        :d0051 => @resp_agency, :d0057 => @subset,
         :d0002 => root.version, :is_iedi => root.is_iedi?,
         :d0076 => nil  # SV 4-1 support still missing here
       }
@@ -1138,7 +1138,7 @@ module EDI::E
         else
           # FIXME: Do we really have to fail here, or would a "warn" suffice?
           raise "seek! failed for #{seg.name} when starting at #{ni.name}"
-        end 
+        end
       end
       ni.seek!( @trailer )
       @trailer.update_with( ni )
@@ -1197,7 +1197,7 @@ module EDI::E
 
 
     def to_s
-      postfix = '' << root.una.seg_term << root.e_linebreak
+      postfix = [root.una.seg_term, root.e_linebreak].join
       super( postfix )
     end
 
@@ -1254,7 +1254,7 @@ module EDI::E
 
     def Segment.parse (p, buf, tag_expected=nil)
       # Buffer contains a single segment
-      
+
       obj_list = EDI::E::edi_split( buf, p.root.una.de_sep, p.root.una.esc_char )
       tag = obj_list.shift 		  # First entry must be the segment tag
 
@@ -1271,7 +1271,7 @@ module EDI::E
 
 
     def to_s
-      s = ''
+      s = []
       return s if empty?
 
       rt = self.root
@@ -1279,7 +1279,7 @@ module EDI::E
       indent = rt.e_indent * (self.level || 0)
       s << indent << name << rt.una.de_sep
       skip_count = 0
-      each {|obj| 
+      each {|obj|
         if obj.empty?
           skip_count += 1
         else
@@ -1291,7 +1291,7 @@ module EDI::E
           skip_count += 1
         end
       }
-      s
+      s.join
     end
 
 
@@ -1375,9 +1375,9 @@ module EDI::E
 
     def to_s
       rt = self.root
-      s = ''; skip_count = 0
+      s = []; skip_count = 0
       ce_sep = rt.una.ce_sep.chr
-      each {|de| 
+      each {|de|
         if de.empty?
           skip_count += 1
         else
@@ -1389,7 +1389,7 @@ module EDI::E
           skip_count += 1
         end
       }
-      s
+      s.join
     end
 
   end
@@ -1413,7 +1413,7 @@ module EDI::E
         # check if supported status value
     end
 
-    
+
     # Generate the DE content from the given string representation.
     # +buf+ contains a single DE string, possibly escaped
 
@@ -1456,15 +1456,15 @@ module EDI::E
 
     private
 
-    def escape (str) 
+    def escape (str)
       rt = self.root
       raise "Must have a root to do this" if rt == nil
 
       esc = rt.una.esc_char.chr
       esc << ?\\ if esc == '\\' # Special case if backslash!
-                   
+
       if rt.charset == 'UNOA'
-        # Implicit conversion to uppercase - convenient, 
+        # Implicit conversion to uppercase - convenient,
         # but could be argued against!
         str.upcase.gsub(rt.una.pattern_esc, esc+'\1')
       else
@@ -1489,7 +1489,7 @@ module EDI::E
   # Turning a whole EDI interchange into an EDI::E::Interchange object
   # with method +parse+ is both convenient and memory consuming.
   # Sometimes, interchanges become just too large to keep them completely
-  # in memory. 
+  # in memory.
   # The same reasoning holds for large XML documents, where there is a
   # common solution: The SAX/SAX2 API, a streaming approach. This class
   # implements the same idea for UN/EDIFACT data.
@@ -1564,7 +1564,7 @@ module EDI::E
   #     end
   #   end
   #   parser.go( File.open 'myfile.edi' )
-    
+
   class StreamingParser
 
     def initialize
@@ -1634,12 +1634,12 @@ module EDI::E
     #
     # Strictly speaking, such strings are not permitted by the UN/EDIFACT
     # syntax rules (ISO 9573). However, it is quite common to put a line break
-    # between segments for better readability. The default settings thus 
+    # between segments for better readability. The default settings thus
     # ignore such occurrences.
     #
     # If you need strict conformance checking, feel free to put some code
     # into this callback method, otherwise just ignore it.
-    # 
+    #
     #
     def on_other( s )
     end
@@ -1647,19 +1647,19 @@ module EDI::E
     # Called upon syntax errors. Parsing should be aborted now.
     #
     def on_error(err, offset, fragment, c=nil)
-      raise err, "offset = %d, last chars = %s%s" % 
+      raise err, "offset = %d, last chars = %s%s" %
         [offset, fragment, c.nil? ? '<EOF>' : c.chr]
     end
 
     #
     # The one-pass reader & dispatcher of segments, SAX-style.
     #
-    # It reads sequentially through the given stream of octets and 
+    # It reads sequentially through the given stream of octets and
     # generates calls to the callbacks <tt>on_...</tt>
     # Parameter +hnd+ may be any object supporting method +getc+.
     #
     def go( hnd )
-      state, offset, iedi, item, tag, una = :outside, 0, false, '', '', ''
+      state, offset, iedi, item, tag, una = :outside, 0, false, [], [], ''
       seg_term, esc_char = nil, ?? # @ic.una.seg_term, @ic.una.esc_char
       una_count = uib_unb_count = nil
 
@@ -1682,8 +1682,8 @@ module EDI::E
 
             when (?A..?Z)
               unless item.empty? # Flush
-                self.on_other( item )
-                item = ''
+                self.on_other( item.join )
+                item = []
               end
               item << c; tag << c
               state = :tag1
@@ -1701,7 +1701,7 @@ module EDI::E
               state = :tag2
 
             else # including 'nil'
-              self.on_error(EDISyntaxError, offset, item, c)
+              self.on_error(EDISyntaxError, offset, item.join, c)
             end
 
             # Found second tag char, now expecting last
@@ -1709,32 +1709,33 @@ module EDI::E
             case c
             when (?A..?Z)
               item << c; tag << c
-              if tag=='UNA'
+              string_tag = tag.join
+              if string_tag=='UNA'
                 state = :in_una
                 una_count = 0
-              elsif tag=~/U[IN]B/
+              elsif string_tag=~/U[IN]B/
                 state = :in_uib_unb
                 uib_unb_count = 0
               else
                 state = :in_segment
               end
             else # including 'nil'
-              self.on_error(EDISyntaxError, offset, item, c)
+              self.on_error(EDISyntaxError, offset, item.join, c)
             end
 
           when :in_una
-            self.on_error(EDISyntaxError, offset, item) if c.nil?
+            self.on_error(EDISyntaxError, offset, item.join) if c.nil?
             item << c; una_count += 1
             if una_count == 6 # completed?
               esc_char, seg_term = item[6], item[8]
-              self.on_una( item )
-              item, tag = '', ''
+              self.on_una( item.join )
+              item, tag = [], []
               state = :outside
             end
 
             # Set seg_term if version==2 && charset=='UNOB'
           when :in_uib_unb
-            self.on_error(EDISyntaxError, offset, item) if c.nil?
+            self.on_error(EDISyntaxError, offset, item.join) if c.nil?
             item << c; uib_unb_count += 1
             if uib_unb_count == 7 # Read up to charset?
               # Set seg_term if not previously set by UNA
@@ -1749,12 +1750,12 @@ module EDI::E
           when :in_segment
             case c
             when nil
-              self.on_error(EDISyntaxError, offset, item)
+              self.on_error(EDISyntaxError, offset, item.join)
             when esc_char
               state = :esc_mode
             when seg_term
-              dispatch_item( item , tag )
-              item, tag = '', ''
+              dispatch_item( item.join , tag.join )
+              item, tag = [], []
               state = :outside
             else
               item << c
@@ -1763,7 +1764,7 @@ module EDI::E
           when :esc_mode
             case c
             when nil
-              self.on_error(EDISyntaxError, offset, item)
+              self.on_error(EDISyntaxError, offset, item.join)
             when seg_term      # Treat seg_term as regular character
               item << seg_term
             # when esc_char      # Redundant - skip
@@ -1772,10 +1773,10 @@ module EDI::E
               item << esc_char << c
             end
             state = :in_segment
-            
+
           else # Should never occur...
             raise ArgumentError, "unexpected state: #{state}"
-          end  
+          end
           offset += 1
         end # loop
 #        self.on_error(EDISyntaxError, offset, item) unless state==:outside
@@ -1909,16 +1910,16 @@ module EDI::E
   # = Class StreamingSkimmer
   #
   # The StreamingSkimmer works as a simplified StreamingBuilder.
-  # It only skims through the service segements of an interchange and 
+  # It only skims through the service segements of an interchange and
   # builds an interchange skeleton from them containing just the interchange,
   # group, and message level, but *not* the regular messages.
   # Thus, all messages are *empty* and not fit for validation
   # (use class StreamingBuilder to build a complete interchange).
   #
   # StreamingSkimmer lacks an implementation of callback
-  # method <tt>on_segment()</tt>. The interchange skeletons it produces are 
+  # method <tt>on_segment()</tt>. The interchange skeletons it produces are
   # thus quicky built and have a small memory footprint.
-  # Customize the class by overwriting <tt>on_segment()</tt>. 
+  # Customize the class by overwriting <tt>on_segment()</tt>.
   #
 
   class StreamingSkimmer < StreamingBuilder

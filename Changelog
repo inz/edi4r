@@ -1,11 +1,16 @@
 = Change log
 
+== 0.9.6.4
+
+* remove usage of mutable strings in preparation for future ruby upgrades
+
 == 0.9.6.3
 
-=== Tested with Ruby 3.2
+* Tested with Ruby 3.2
 
 == 0.9.6.2
-=== Tested with Ruby 2.2.1, some RDoc links fixed
+
+* Tested with Ruby 2.2.1, some RDoc links fixed
 
 == 0.9.6.1
 
