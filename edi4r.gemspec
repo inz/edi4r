@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name        = 'edi4r'
-  s.version     = '0.9.6.3'
+  s.version     = '0.9.6.4'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Heinz W. Werntges']
   s.email       = []
