@@ -86,7 +86,7 @@ module EDI::E
     #
     results << item unless item.empty?
     return results if results.empty?
-    while results.last.empty?; results.pop; end
+    while results.last&.empty?; results.pop; end
     results
   end
 
