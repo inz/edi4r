@@ -26,7 +26,8 @@ module EDI::E
   #
   # Use pattern for allowed chars of UNOC charset if none given explicitly
   #
-  Illegal_Charset_Patterns = Hash.new(/[^-A-Za-z0-9 .,()\/=!%"&*;<>'+:?\xa0-\xff]+/)
+  # UNOC (ISO/IEC 8859-1) valid code points: 0x20-0x7E, and 0xA0-0xFF
+  Illegal_Charset_Patterns = Hash.new(/[^\x20-\x7e\xa0-\xff]+/)
   Illegal_Charset_Patterns['UNOA'] =     /[^-A-Z0-9 .,()\/=!%"&*;<>'+:?]+/
   Illegal_Charset_Patterns['UNOB'] =  /[^-A-Za-z0-9 .,()\/=!%"&*;<>'+:?]+/
   # more to come...
